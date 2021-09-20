@@ -1,14 +1,19 @@
 package com.frabbi.demopermission;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.widget.Toast;
 
 import com.frabbi.demopermission.databinding.ActivityMainBinding;
@@ -24,23 +29,28 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         binding.fabCover.setOnClickListener(view -> {
-            if ((ContextCompat.checkSelfPermission(MainActivity.this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) &&
-                    (ContextCompat.checkSelfPermission(MainActivity.this,
-                            Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-            ){
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.CAMERA
-                }, REQUEST_PERMISSION);
-            }
-
-            else{
-
-                Toast.makeText(MainActivity.this, "permission grunted", Toast.LENGTH_SHORT).show();
-            }
+         //   selectImage();
+            final CharSequence[] item = { "Camera", "Gallery","Cancel"};
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Choose")
+                    .setItems(item,(dialogInterface, i) -> {
+                        if(item[i].equals(item[0])){
+                            Intent intent = new Intent();
+                            intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+                            startActivityForResult(intent,1);
+                        }
+                        if(item[i].equals(item[1])){
+                            Intent intent = new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            startActivityForResult(intent,2);
 
 
+                        }
+                        if(item[i].equals(item[2])){
+                            dialogInterface.dismiss();
+                        }
+                    })
+                    .create()
+                    .show();
 
         });
 
@@ -51,12 +61,47 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void selectImage() {
+        if ((ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) &&
+                (ContextCompat.checkSelfPermission(MainActivity.this,
+                        Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+        ) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.CAMERA
+            }, REQUEST_PERMISSION);
+        } else {
+            final CharSequence[] item = { "Camera", "Gallery","Cancel"};
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Choose")
+                    .setItems(item,(dialogInterface, i) -> {
+                        if(item[i].equals(item[0])){
+                            Intent intent = new Intent();
+                            intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+                            startActivityForResult(intent,1);
+                        }
+                        if(item[i].equals(item[1])){
+                            Intent intent = new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            startActivityForResult(intent,2);
+
+
+                        }
+                        if(item[i].equals(item[2])){
+                            dialogInterface.dismiss();
+                        }
+                    })
+                    .create()
+                    .show();
+        }
+    }
+
     private void requestStoragePermissions() {
         /* **************EXTERNAL STORAGE******************* */
         if ((ActivityCompat.shouldShowRequestPermissionRationale(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE)) ||
                 (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.CAMERA))
+                        Manifest.permission.CAMERA))
         ) {
             new AlertDialog.Builder(this)
                     .setTitle("Permission needed")
@@ -67,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
                                 Manifest.permission.CAMERA
                         }, REQUEST_PERMISSION);
                     })
-                    .setNegativeButton("cancle", (dialogInterface, i) -> {
+                    .setNegativeButton("cancel", (dialogInterface, i) -> {
                         dialogInterface.dismiss();
                     })
                     .create()
@@ -107,15 +152,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-      //  super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        //  super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        switch (requestCode){
+        switch (requestCode) {
             case REQUEST_PERMISSION:
-                if(grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
 
-                }else {
-                   // Toast.makeText(this,"Permission  MEDIA is not granted",Toast.LENGTH_LONG).show();
+                } else {
+                    // Toast.makeText(this,"Permission  MEDIA is not granted",Toast.LENGTH_LONG).show();
 
                 }
 
@@ -129,6 +174,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        requestStoragePermissions();
+      //  requestStoragePermissions();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            if(requestCode == 1){
+                Bitmap pic = (Bitmap) data.getExtras().get("data");
+                binding.coverPicId.setImageBitmap(pic);
+            }
+            if (requestCode == 2) {
+
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }
