@@ -12,8 +12,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.frabbi.demopermission.databinding.ActivityMainBinding;
@@ -21,6 +23,7 @@ import com.frabbi.demopermission.databinding.ActivityMainBinding;
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private static final int REQUEST_PERMISSION = 1;
+    private Uri imageLink;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -185,6 +188,8 @@ public class MainActivity extends AppCompatActivity {
                 binding.coverPicId.setImageBitmap(pic);
             }
             if (requestCode == 2) {
+                imageLink = data.getData();
+                binding.coverPicId.setImageURI(imageLink);
 
             }
         }
